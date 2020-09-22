@@ -1,0 +1,61 @@
+    How to modify P&D Wizard/Setup1.exe to add Desktop Icons during the installation of your Visual Basic Programs.
+
+
+    In reading the article titled "Make P&D Wizard/Setup1.exe create Desktop shortcuts" written by W. Baldwin on 12/17/2001 here at PSC, I found that my version of Setup1.vbp (Visual Studio) was different that the one mentioned in that article. I found that the lines of code that were mentioned did not match up with what I was looking at myself. I found the answers by carefully studying the code and wanted to provide these answers with the rest of you. Although my article will show different code lines, the concept is the same and I do recommend that you read the before mentioned article along with this article to get a full understanding of what you are doing and why you are doing it. W. Baldwin's article has many links to other articles on MSDN that support and explain the modification of Setup1.vbp. I wanted to post these differences for anyone that may have the same version as I do and could not make the necessary modifications to make this change work.
+    As always, you should back up your Setup1.vbp files for safety! Once you have backed up the files, follow these steps to get your applications icons on your users desktop with ease. Note that "Red" text is the original text and "Green" text is the modified text.
+
+1.	Open Setup1.vbp, go to frmSetup1 in the Form_Load Event and look for the following lines of code:
+	If (GetGroup(gsICONGROUP, iLoop) = gsSTARTMENUKEY) Or (GetGroup(gsICONGROUP, iLoop) = gsPROGMENUKEY) Then
+
+	Change the line to read as follows:
+	If (GetGroup(gsICONGROUP, iLoop) = gsSTARTMENUKEY) Or (GetGroup(gsICONGROUP, iLoop) = gsPROGMENUKEY) Or 	(GetGroup(gsICONGROUP, iLoop) = "DESKTOP") Then
+2.	Now go to basSetup1 in the sub "CreateIcons" and look for the following line of code (near the bottom of the sub):
+	Loop
+	CreateOSLink frmSetup1, strGroup, strProgramPath, strProgramArgs, strProgramIconTitle, fPrivate, sParent
+
+	We are going to ADD code between the Loop end and the call to CreateOSLink to say the following:
+	Loop
+	'***** ADDED CODE
+	If UCase(strGroup) = "DESKTOP" Then
+	strGroup = "..\..\Desktop"
+	End If
+	'*****
+	CreateOSLink frmSetup1, strGroup, strProgramPath, strProgramArgs, strProgramIconTitle, fPrivate, sParent
+3.	We are now done modifying Setup1.vbp, save your work, and make "Setup1.exe". This new exe should reside in the folder 	"Program Files/Microsoft Visual Studio/VB98/Wizards/PDWizard" (of course, your program name will vary by the version 	and type of VB you are running. But the sub folders will be the same.
+4.	Now we must modify the Setup1.lst file, this file can be opened with any text editor, I use NotePad to work on mine. 	The modifications from here on are the same as the previous article mentioned. After you Package/Deploy your program, 	open the file "Setup1.lst" and go down to the [IconGroups] section of the file. You will find the following text for 	a program that has just one icon that will be placed in the "Programs" folder of the Start Menu:
+	[IconGroups]
+	Group0=Scheduler
+	PrivateGroup0=-1
+	Parent0=$(Programs)
+	
+	[Scheduler]
+	Icon1="Scheduler.exe"
+	Title1=Scheduler
+	StartIn1=$(AppPath)
+	
+	This text sets an Icon for a program called "Scheduler" in the Start Menu under "Programs". Under [IconGroups] there 	is just one group and under [Scheduler] you see the information for that group.
+	
+5.	Now we are going to add a second group to describe the Desktop icon, modify Setup1.lst to read as follows:
+	
+	[IconGroups]
+	Group0=Scheduler
+	PrivateGroup0=-1
+	Parent0=$(Programs)
+	
+	Group1=DESKTOP
+	PrivateGroup1=-1
+	Parent1=$(Programs)
+	
+	[Scheduler]
+	Icon1="Scheduler.exe"
+	Title1=Scheduler
+	StartIn1=$(AppPath)
+	
+	[DESKTOP]
+	Icon1="Scheduler.exe"
+	Title1=Scheduler
+	StartIn1=$(AppPath)
+	
+	As you can see, we added another group, "Group1" and called it "DESKTOP", then below that we added a description for 	the "DESKTOP" icon to show that the icon itself is the icon for the Program's Exe file. The title is Scheduler and 	the "StartIn" path. Note that each group is numbered, starting with Group0, then Group1, if we were to add more icons 	they would be named Group2, Group3 and so on. A very good explanation of this is in the previous article I mentioned 	at the top of this tutorial.
+
+    I hope that this article will help those that had questions and just couldn't find the right answer's out there anywhere.
